@@ -1,7 +1,11 @@
-// This will be the main entry point for the library
-
-export * from './actions/createMint';
+export * from './actions/airdrop';
 export * from './actions/createAccount';
+export * from './actions/createMint';
 export * from './actions/mintTo';
 export * from './actions/transfer';
-export * from './actions/airdrop';
+export * from './actions/mintClose/closeMint';
+export * from './actions/transferFees/checkFee';
+export * from './actions/transferFees/harvestFees';
+export * from './actions/transferFees/findAccountsWithWithheldFees';
+export * from './actions/transferFees/withdrawWithheldTokensFromMint';
+export * from './actions/transferFees/withdrawWithheldTokensFromAccounts';

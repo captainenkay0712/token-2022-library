@@ -8,7 +8,7 @@ import {
 import {
     createAssociatedTokenAccountInstruction,
     getAssociatedTokenAddressSync,
-    TOKEN_2022_PROGRAM_ID,
+    TOKEN_PROGRAM_ID,
     ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 
@@ -19,19 +19,21 @@ import {
  * @param payer         Payer of the transaction fees
  * @param mint          The token mint address
  * @param owner         The owner of the new token account
+ * @param tokenProgramId The program ID of the token program (default: TOKEN_PROGRAM_ID)
  * @returns             The address of the created associated token account
  */
 export async function createAssociatedTokenAccount(
     connection: Connection,
     payer: Keypair,
     mint: PublicKey,
-    owner: PublicKey
+    owner: PublicKey,
+    tokenProgramId: PublicKey = TOKEN_PROGRAM_ID
 ): Promise<PublicKey> {
     const associatedTokenAddress = getAssociatedTokenAddressSync(
         mint,
         owner,
         false, // allowOwnerOffCurve
-        TOKEN_2022_PROGRAM_ID,
+        tokenProgramId,
         ASSOCIATED_TOKEN_PROGRAM_ID
     );
 
@@ -41,7 +43,7 @@ export async function createAssociatedTokenAccount(
             associatedTokenAddress,
             owner,
             mint,
-            TOKEN_2022_PROGRAM_ID,
+            tokenProgramId,
             ASSOCIATED_TOKEN_PROGRAM_ID
         )
     );

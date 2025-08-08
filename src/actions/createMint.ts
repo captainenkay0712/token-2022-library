@@ -12,18 +12,27 @@ import {
     getMintLen,
     ExtensionType,
     createInitializeTransferFeeConfigInstruction,
+    createInitializeMintCloseAuthorityInstruction,
     TOKEN_2022_PROGRAM_ID,
 } from '@solana/spl-token';
+
+// Define a type for the Mint Close Authority extension configuration
+export interface MintCloseAuthorityConfig {
+    extension: ExtensionType.MintCloseAuthority;
+    closeAuthority: PublicKey;
+}
 
 // Define a type for the Transfer Fee extension configuration
 export interface TransferFeeConfig {
     extension: ExtensionType.TransferFeeConfig;
+    transferFeeConfigAuthority: PublicKey | null;
+    withdrawWithheldAuthority: PublicKey | null;
     feeBasisPoints: number;
     maximumFee: bigint;
 }
 
 // A generic type for any extension configuration
-export type ExtensionConfig = TransferFeeConfig; // Add other configs with `|`
+export type ExtensionConfig = TransferFeeConfig | MintCloseAuthorityConfig;
 
 /**
  * Creates a new mint with specified extensions.
@@ -64,16 +73,26 @@ export async function createMint(
     );
 
     // Add instructions for each extension
-    for (const config of extensions) {
-        switch (config.extension) {
+    for (const ext of extensions) {
+        switch (ext.extension) {
+            case ExtensionType.MintCloseAuthority:
+                const mintCloseAuthorityConfig = ext as MintCloseAuthorityConfig;
+                instructions.push(
+                    createInitializeMintCloseAuthorityInstruction(
+                        mintKeypair.publicKey,
+                        mintCloseAuthorityConfig.closeAuthority,
+                        TOKEN_2022_PROGRAM_ID
+                    )
+                );
+                break;
             case ExtensionType.TransferFeeConfig:
                 instructions.push(
                     createInitializeTransferFeeConfigInstruction(
                         mintKeypair.publicKey,
-                        mintAuthority, // transferFeeConfigAuthority
-                        mintAuthority, // withdrawWithheldAuthority
-                        config.feeBasisPoints,
-                        config.maximumFee,
+                        ext.transferFeeConfigAuthority,
+                        ext.withdrawWithheldAuthority,
+                        ext.feeBasisPoints,
+                        ext.maximumFee,
                         TOKEN_2022_PROGRAM_ID
                     )
                 );
@@ -123,6 +142,8 @@ export async function createMintWithTransferFee(
     return createMint(connection, payer, mintAuthority, freezeAuthority, decimals, [
         {
             extension: ExtensionType.TransferFeeConfig,
+            transferFeeConfigAuthority: null,
+            withdrawWithheldAuthority: null,
             feeBasisPoints,
             maximumFee: maxFee,
         },
